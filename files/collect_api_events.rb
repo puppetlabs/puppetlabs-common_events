@@ -2,25 +2,13 @@
 require 'find'
 require 'yaml'
 
-def require_classes(modulepaths)
-  catch :done do
-    modulepaths.split(':').each do |modulepath|
-      Find.find(modulepath) do |path|
-        if %r{common_events_library.gemspec}.match?(path)
-          $LOAD_PATH.unshift("#{File.dirname(path)}/lib")
-          throw :done
-        end
-      end
-    end
-  end
-
-  require 'events_collection/lockfile'
-  require 'events_collection/orchestrator_event'
-  require 'common_events_library'
-end
+require_relative 'api/events'
+require_relative 'api/orchestrator'
+require_relative 'events_collection/lockfile'
+require_relative 'util/common_events_http'
+require_relative 'util/pe_http'
 
 def main(confdir, modulepaths, statedir)
-  require_classes(modulepaths)
 
   begin
     lockfile = CommonEvents::Lockfile.new(statedir)
@@ -42,8 +30,8 @@ def main(confdir, modulepaths, statedir)
 end
 
 if $PROGRAM_NAME == __FILE__
-  confdir     = ARGV[0] || '/etc/puppetlabs/puppet'
+  confdir     = ARGV[0] || '/etc/puppetlabs/puppet/common_events'
   modulepaths = ARGV[1] || '/etc/puppetlabs/code/environments/production/modules:/etc/puppetlabs/code/environments/production/site:/etc/puppetlabs/code/modules:/opt/puppetlabs/puppet/modules'
-  statedir    = ARGV[2] || '/etc/puppetlabs/puppet'
+  statedir    = ARGV[2] || '/etc/puppetlabs/puppet/common_events/processors.d'
   main(confdir, modulepaths, statedir)
 end
